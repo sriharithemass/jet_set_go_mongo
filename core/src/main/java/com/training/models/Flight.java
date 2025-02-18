@@ -47,4 +47,6 @@ public class Flight {
     @DBRef
     @JsonIgnore
     private List<Booking> bookings = new ArrayList<>();
+
+    private Operator operator;
 }

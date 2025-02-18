@@ -1,6 +1,8 @@
 package com.training.controllers;
 
 import com.training.models.Flight;
+import com.training.payload.FlightGrouped;
+import com.training.payload.FlightOperatorLocation;
 import com.training.services.impl.FlightServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,30 @@ public class FlightController {
     public ResponseEntity<Flight> getFlightById(@PathVariable String flightId){
         Flight flight = flightService.getFlightById(flightId);
         return new ResponseEntity<>(flight,HttpStatus.OK);
+    }
+
+    @GetMapping("/flights-op")
+    public ResponseEntity<List<Flight>> getFlightsByOperatorName(@RequestParam String operatorName){
+        List<Flight> flights = flightService.getFlightByOperatorName(operatorName);
+        return new ResponseEntity<>(flights,HttpStatus.OK);
+    }
+
+    @GetMapping("/flights-op-loc")
+    public ResponseEntity<List<Flight>> getFlightsByOperatorLocation(@RequestParam String location){
+        List<Flight> flights = flightService.getFlightByOperatorLocation(location);
+        return new ResponseEntity<>(flights,HttpStatus.OK);
+    }
+
+    @GetMapping("/flight-group")
+    public ResponseEntity<List<FlightGrouped>> getFlightGroup(){
+        List<FlightGrouped> flightGroupedList = flightService.groupByOperator();
+        return new ResponseEntity<>(flightGroupedList,HttpStatus.OK);
+    }
+
+    @GetMapping("/flight-group-loc")
+    public ResponseEntity<List<FlightOperatorLocation>> getFlightGroupLocation(){
+        List<FlightOperatorLocation> flightGroupedList = flightService.groupByOperatorLocation();
+        return new ResponseEntity<>(flightGroupedList,HttpStatus.OK);
     }
 
     @PostMapping("/flights")

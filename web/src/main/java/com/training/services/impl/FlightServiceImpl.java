@@ -3,7 +3,11 @@ package com.training.services.impl;
 import com.training.config.AppConstants;
 import com.training.exception.APIException;
 import com.training.models.Flight;
+import com.training.models.Operator;
+import com.training.payload.FlightGrouped;
+import com.training.payload.FlightOperatorLocation;
 import com.training.repositories.FlightRepository;
+import com.training.repositories.OperatorRepository;
 import com.training.services.FlightService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,9 +19,11 @@ import java.util.List;
 public class FlightServiceImpl implements FlightService {
 
     private FlightRepository flightRepository;
+    private OperatorRepository operatorRepository;
 
-    public FlightServiceImpl(FlightRepository flightRepository) {
+    public FlightServiceImpl(FlightRepository flightRepository, OperatorRepository operatorRepository) {
         this.flightRepository = flightRepository;
+        this.operatorRepository = operatorRepository;
     }
 
     @Override
@@ -52,6 +58,9 @@ public class FlightServiceImpl implements FlightService {
         if (flight.getDepartureLocation().equalsIgnoreCase(flight.getArrivalLocation()))
             throw new APIException("location should not be same");
 
+        Operator operator = operatorRepository.findById(flight.getOperator().getOperatorId())
+                .orElseThrow(()-> new APIException("Operator Not Found"));
+        flight.setOperator(operator);
         flightRepository.save(flight);
         return "Flight Added";
     }
@@ -85,5 +94,39 @@ public class FlightServiceImpl implements FlightService {
         flightRepository.deleteByFlightId(flightId);
 
         return "Flight Deleted";
+    }
+
+    public List<Flight> getFlightByOperatorName(String operatorName){
+        List<Operator> operators = operatorRepository.findByOperatorName(operatorName);
+
+        if (operators==null)
+            throw new APIException("Operator Not Found");
+
+        List<Flight> flights = flightRepository.findByOperator_OperatorName(operatorName);
+        return flights;
+    }
+
+    public List<Flight> getFlightByOperatorLocation(String location){
+        List<Operator> operators = operatorRepository.findByOperatorLocation(location);
+
+        if (operators==null)
+            throw new APIException("No Operators Found");
+
+        List<Flight> flights = flightRepository.findByOperatorLocations(location);
+
+        if (flights==null)
+            throw new APIException(AppConstants.FLIGHT_NOT_FOUND);
+
+        return flights;
+    }
+
+    public List<FlightGrouped> groupByOperator(){
+        List<FlightGrouped> flightGroupedList = flightRepository.groupByOperator();
+        return flightGroupedList;
+    }
+
+    public List<FlightOperatorLocation> groupByOperatorLocation(){
+        List<FlightOperatorLocation> flightOperatorLocationList = flightRepository.groupByOperatorLocation();
+        return flightOperatorLocationList;
     }
 }
